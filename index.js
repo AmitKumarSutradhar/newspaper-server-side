@@ -1,5 +1,6 @@
-const express = require('express')
 require('dotenv').config()
+const express = require('express')
+var jwt = require('jsonwebtoken');
 var cors = require('cors')
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const app = express();
@@ -25,10 +26,10 @@ const client = new MongoClient(uri, {
 async function run() {
     try {
         // Connect the client to the server	(optional starting in v4.7)
-        await client.connect();
+        // await client.connect();
         // Send a ping to confirm a successful connection
-        await client.db("admin").command({ ping: 1 });
-        console.log("Pinged your deployment. You successfully connected to MongoDB!");
+        // await client.db("admin").command({ ping: 1 });
+        // console.log("Pinged your deployment. You successfully connected to MongoDB!");
 
 
 
@@ -37,6 +38,41 @@ async function run() {
         const publisherCollection = client.db('newspaperDB').collection('publishers');
         const articleCollection = client.db('newspaperDB').collection('atricles');
 
+
+         // jwt related api
+    app.post('/jwt', async (req, res) => {
+        const user = req.body;
+        const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' });
+        res.send({ token });
+      })
+  
+      // middlewares 
+      const verifyToken = (req, res, next) => {
+        // console.log('inside verify token', req.headers.authorization);
+        if (!req.headers.authorization) {
+          return res.status(401).send({ message: 'unauthorized access' });
+        }
+        const token = req.headers.authorization.split(' ')[1];
+        jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+          if (err) {
+            return res.status(401).send({ message: 'unauthorized access' })
+          }
+          req.decoded = decoded;
+          next();
+        })
+      }
+  
+      // use verify admin after verifyToken
+      const verifyAdmin = async (req, res, next) => {
+        const email = req.decoded.email;
+        const query = { email: email };
+        const user = await userCollection.findOne(query);
+        const isAdmin = user?.role === 'admin';
+        if (!isAdmin) {
+          return res.status(403).send({ message: 'forbidden access' });
+        }
+        next();
+      }
 
         // User Realted API 
         app.get('/users', async (req, res) => {
