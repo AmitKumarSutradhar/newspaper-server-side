@@ -34,7 +34,10 @@ async function run() {
 
 
         const userCollection = client.db('newspaperDB').collection('users');
+        const publisherCollection = client.db('newspaperDB').collection('publishers');
 
+
+        // User Realted API 
         app.get('/users', async (req, res) => {
             const result = await userCollection.find().toArray();
             res.send(result);
@@ -60,7 +63,34 @@ async function run() {
             const query = { _id: new ObjectId(id) }
             const result = await userCollection.deleteOne(query);
             res.send(result);
-          })
+        })
+
+        //   Publisher realted API 
+        app.get('/publishers', async (req, res) => {
+            const result = await publisherCollection.find().toArray();
+            res.send(result);
+        })
+
+        app.post('/publishers', async (req, res) => {
+            const publishers = req.body;
+
+            // const query = { email: user.email }
+            // const existingUser = await userCollection.findOne(query);
+
+            // if (existingUser) {
+            //     return res.send({ message: 'user already exists', insertedId: null })
+            // }
+
+            const result = await publisherCollection.insertOne(publishers);
+            res.send(result);
+        })
+
+        app.delete('/publishers/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) }
+            const result = await publisherCollection.deleteOne(query);
+            res.send(result);
+        })
 
 
     } finally {
