@@ -107,12 +107,12 @@ async function run() {
 
 
         //   Articles realted API 
-        app.get('/atricles', async (req, res) => {
+        app.get('/articles', async (req, res) => {
             const result = await articleCollection.find().toArray();
             res.send(result);
         })
 
-        app.post('/atricles', async (req, res) => {
+        app.post('/articles', async (req, res) => {
             const publishers = req.body;
 
             // const query = { email: user.email }
@@ -126,7 +126,15 @@ async function run() {
             res.send(result);
         })
 
-        app.delete('/atricles/:id', async (req, res) => {
+        app.get('/articles/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) }
+
+            const result = await articleCollection.findOne(query);
+            res.send(result);
+        })
+
+        app.delete('/articles/:id', async (req, res) => {
             const id = req.params.id;
             const query = { _id: new ObjectId(id) }
             const result = await articleCollection.deleteOne(query);
